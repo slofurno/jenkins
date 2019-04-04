@@ -37,7 +37,7 @@ def call(Map params = [:]) {
         steps {
           container('nodejs') {
             script {
-              dir(SRC_DIR) {
+              dir(PWD) {
                 checkout scm
                 params["build"].each {
                   sh it
