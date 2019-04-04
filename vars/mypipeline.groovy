@@ -19,8 +19,6 @@ def call(Map params = [:]) {
             params.env.each {
               env[it.key] = it.value
             }
-
-            sh "env"
           }
         }
       }
@@ -30,6 +28,7 @@ def call(Map params = [:]) {
           echo params["name"]
           withCredentials([string(credentialsId: 'mysecret', variable: 'MYSECRET')]) {
             script {
+              sh "env"
               sh "echo mysecret: $MYSECRET"
               params["install"].each {
                 sh it
