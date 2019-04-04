@@ -10,9 +10,7 @@ def call(Map params = [:]) {
     agent any
     stages {
       stage("hello") {
-        environment {
-          NAME = params["name"]
-        }
+
         steps {
           echo params["name"]
           withCredentials([string(credentialsId: 'mysecret', variable: 'MYSECRET')]) {
