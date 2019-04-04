@@ -15,7 +15,7 @@ def call(Map params = [:]) {
           withCredentials([string(credentialsId: 'mysecret', variable: 'MYSECRET')]) {
             script {
               sh "echo mysecret: $MYSECRET"
-              name = params["name"]
+              def name = params["name"]
               params["install"].each {
                 sh it
               }
