@@ -12,18 +12,16 @@ def call(Map params = [:]) {
       stage("hello") {
         steps {
           echo params["name"]
-          environment {
-            NAME = params["name"]
-          }
           withCredentials([string(credentialsId: 'mysecret', variable: 'MYSECRET')]) {
             script {
               sh "echo mysecret: $MYSECRET"
+              name = params["name"]
               params["install"].each {
                 sh it
               }
 
-              sh ''''
-                echo "project name: ${NAME}"
+              sh '''
+                echo "project name: ${name}"
               '''
             }
           }
