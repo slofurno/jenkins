@@ -11,6 +11,9 @@ def call(Map params = [:]) {
       stage("hello") {
         steps {
           echo params["name"]
+          withCredentials([string(credentialsId: 'mysecret', variable: 'MYSECRET')]) {
+            sh "echo mysecret: $MYSECRET"
+          }
         }
       }
     }
