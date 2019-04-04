@@ -89,7 +89,7 @@ def call(Map params = [:]) {
               withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds']]) {
                 dir(path: PWD) {
                   sh "cat deploy/qa/* | envsubst | kubectl apply -f -"
-                  sh "kubectl rollout status -f deploy/qa/deploy.yml"
+                  sh "kubectl rollout status --timeout=60s -f deploy/qa/deploy.yml"
                 }
               }
             }
@@ -106,7 +106,7 @@ def call(Map params = [:]) {
                 dir(path: PWD) {
                   kubeEnvSetup("production")
                   sh "cat deploy/production/* | envsubst | kubectl apply -f -"
-                  sh "kubectl rollout status -f deploy/production/deploy.yml"
+                  sh "kubectl rollout status --timeout=60s -f deploy/production/deploy.yml"
                 }
               }
             }
