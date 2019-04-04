@@ -2,13 +2,27 @@ def call(Map params = [:]) {
   def defaults = [
     name: "asdf",
     install: ["echo installed"],
+    env: [:]
   ]
 
   params = defaults << params
 
   pipeline {
     agent any
+    environment {
+      REPO="142221083342.dkr.ecr.us-east-1.amazonaws.com"
+    }
     stages {
+      stage("set env") {
+        script {
+          params.env.each {
+            env[it.key] = it.value
+          }
+
+          sh "env"
+        }
+      }
+
       stage("hello") {
 
         steps {
