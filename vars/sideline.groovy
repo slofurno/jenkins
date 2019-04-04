@@ -69,7 +69,7 @@ def call(Map params = [:]) {
               withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds']]) {
                 dir(path: PWD) {
                   sh """
-                    $(aws ecr get-login --no-include-email --registry-id=142221083342 | sed -e 's|docker|docker --config=/|')
+                    \$(aws ecr get-login --no-include-email --registry-id=142221083342 | sed -e 's|docker|docker --config=/|')
 
                     docker build -t ${IMAGE}:${TAG} .
                     docker --config=/ push ${IMAGE}:${TAG}
