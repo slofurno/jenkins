@@ -14,17 +14,18 @@ def call(Map params = [:]) {
     }
     stages {
       stage("set env") {
-        script {
-          params.env.each {
-            env[it.key] = it.value
-          }
+        steps {
+          script {
+            params.env.each {
+              env[it.key] = it.value
+            }
 
-          sh "env"
+            sh "env"
+          }
         }
       }
 
       stage("hello") {
-
         steps {
           echo params["name"]
           withCredentials([string(credentialsId: 'mysecret', variable: 'MYSECRET')]) {
