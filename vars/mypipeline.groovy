@@ -13,7 +13,7 @@ def call(Map params = [:]) {
         steps {
           echo params["name"]
           withCredentials([string(credentialsId: 'mysecret', variable: 'MYSECRET')]) {
-            dir(path: SRC_DIR) {
+            script {
               sh "echo mysecret: $MYSECRET"
               params["install"].each {
                 sh it
