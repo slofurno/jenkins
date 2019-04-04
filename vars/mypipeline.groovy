@@ -20,6 +20,8 @@ def call(Map params = [:]) {
                 sh it
               }
 
+              sh 'echo "project name: ${name}"'
+
               sh '''
                 echo "project name: ${name}"
               '''
