@@ -10,7 +10,8 @@ def call(Map params = [:]) {
   pipeline {
     agent any
     environment {
-      REPO="142221083342.dkr.ecr.us-east-1.amazonaws.com"
+      IMAGE="142221083342.dkr.ecr.us-east-1.amazonaws.com/${params['name']}"
+      TAG="asdfghh"
     }
     stages {
       stage("set env") {
@@ -36,6 +37,7 @@ def call(Map params = [:]) {
 
               sh """
                 echo "project name: ${params['name']}"
+                echo "image: $IMAGE/$TAG"
               """
             }
           }
