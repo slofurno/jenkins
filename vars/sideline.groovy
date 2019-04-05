@@ -60,6 +60,14 @@ def call(Map params = [:]) {
             script {
               dir(PWD) {
                 sh 'echo "pwd: $PWD"'
+                echo scm.toString()
+                checkout([
+                     $class: 'GitSCM',
+                     branches: scm.branches,
+                     doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
+                     extensions: scm.extensions,
+                     userRemoteConfigs: scm.userRemoteConfigs
+                ])
                 params["build"].each {
                   sh it
                 }
