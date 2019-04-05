@@ -60,7 +60,7 @@ def call(Map params = [:]) {
             script {
               dir(PWD) {
                 sh 'echo "pwd: $PWD"'
-                echo scm.extensions
+
                 checkout([
                   $class: 'GitSCM',
                   branches: scm.branches,
