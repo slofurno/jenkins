@@ -66,7 +66,7 @@ def call(Map params = [:]) {
                   $class: 'GitSCM',
                   branches: scm.branches,
                   doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
-                  extensions: scm.extensions + reltarget
+                  extensions: (scm.extensions + reltarget),
                   userRemoteConfigs: scm.userRemoteConfigs,
                 ])
                 params["build"].each {
