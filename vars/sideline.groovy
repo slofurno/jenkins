@@ -46,7 +46,7 @@ def call(Map params = [:]) {
             }
 
             def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
-            def pwd = scmUrl.replace('https://', 'src').replace('.git', '')
+            def pwd = scmUrl.replace('https://', 'src/').replace('.git', '')
             PWD = "${PWD}/${pwd}"
 
             sh "mkdir -p ${PWD}"
