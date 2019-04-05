@@ -1,7 +1,7 @@
 def call(Map params = [:]) {
   def defaults = [
     name: "asdf",
-    agent: "sidecar-nodejs",
+    agent: "nodejs",
     image: "",
     build: ["npm install"],
     install: [],
@@ -9,10 +9,22 @@ def call(Map params = [:]) {
     env: [:]
   ]
 
+  def defaultContainers = [
+    "nodejs": [
+      "agent": "sidecar-nodejs",
+      "build": "nodejs",
+    ],
+    "go": [
+      "agent": "sidecar-go",
+      "build": "go",
+    ]
+  ]
+
   params = defaults << params
+  def containers = defaultContainers[params["agent"]]
 
   pipeline {
-    agent { label params["agent"] }
+    agent { label containers["agent"] }
 
     environment {
       PWD = "${env.WORKSPACE}"
@@ -29,13 +41,16 @@ def call(Map params = [:]) {
             params.env.each {
               env[it.key] = it.value
             }
+            withCredentials([file(credentialsId: 'netrc', variable: 'FILE')]) {
+              sh "mv ${FILE} ~/.netrc"
+            }
           }
         }
       }
 
       stage('build') {
         steps {
-          container('nodejs') {
+          container(containers["build"]) {
             script {
               dir(PWD) {
                 checkout scm
