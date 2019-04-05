@@ -53,7 +53,8 @@ def call(Map params = [:]) {
           container(containers["build"]) {
             script {
               dir(PWD) {
-                checkout scm
+                def xs = checkout scm
+                echo xs
                 params["build"].each {
                   sh it
                 }
