@@ -60,13 +60,13 @@ def call(Map params = [:]) {
             script {
               dir(PWD) {
                 sh 'echo "pwd: $PWD"'
-
+                echo scm.extensions
                 checkout([
                   $class: 'GitSCM',
                   branches: scm.branches,
                   doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
                   //extensions: scm.extensions,
-                  userRemoteConfigs: scm.userRemoteConfigs
+                  userRemoteConfigs: scm.userRemoteConfigs,
                   extensions: [
                     [$class: 'RelativeTargetDirectory', relativeTargetDir: $TARGET]
                   ],
