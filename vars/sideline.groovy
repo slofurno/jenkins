@@ -44,6 +44,12 @@ def call(Map params = [:]) {
             withCredentials([file(credentialsId: 'netrc', variable: 'FILE')]) {
               sh "mv ${FILE} ~/.netrc"
             }
+
+            def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
+            def pwd = scmUrl.replace('https://', 'src').replace('.git', '')
+            env['PWD'] = "${PWD}/${pwd}"
+
+            sh "mkdir -p ${PWD}"
           }
         }
       }
@@ -53,8 +59,6 @@ def call(Map params = [:]) {
           container(containers["build"]) {
             script {
               dir(PWD) {
-                def xs = checkout scm
-                echo xs
                 params["build"].each {
                   sh it
                 }
