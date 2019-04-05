@@ -61,7 +61,7 @@ def call(Map params = [:]) {
               dir(PWD) {
                 sh 'echo "pwd: $PWD"'
 
-                def reltarget = [ [$class: 'RelativeTargetDirectory', relativeTargetDir: TARGET] ]
+                def reltarget = [ [$class: 'RelativeTargetDirectory', relativeTargetDir: ""] ]
                 checkout([
                   $class: 'GitSCM',
                   branches: scm.branches,
@@ -80,7 +80,7 @@ def call(Map params = [:]) {
 
       stage('test') {
         steps {
-          container('nodejs') {
+          container(containers["build"]) {
             script {
               dir(path: PWD) {
                 params["test"].each {
