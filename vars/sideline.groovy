@@ -59,6 +59,7 @@ def call(Map params = [:]) {
           container(containers["build"]) {
             script {
               dir(PWD) {
+                sh 'echo "pwd: $PWD"'
                 params["build"].each {
                   sh it
                 }
