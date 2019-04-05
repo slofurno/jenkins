@@ -46,8 +46,8 @@ def call(Map params = [:]) {
             }
 
             def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
-            def pwd = scmUrl.replace('https://', 'src/').replace('.git', '')
-            PWD = "${PWD}/${pwd}"
+            TARGET = scmUrl.replace('https://', 'src/').replace('.git', '')
+            PWD = "${PWD}/${TARGET}"
 
             sh "mkdir -p ${PWD}"
           }
@@ -60,13 +60,16 @@ def call(Map params = [:]) {
             script {
               dir(PWD) {
                 sh 'echo "pwd: $PWD"'
-                echo scm.toString()
+                echo scm.extensions
                 checkout([
-                     $class: 'GitSCM',
-                     branches: scm.branches,
-                     doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
-                     extensions: scm.extensions,
-                     userRemoteConfigs: scm.userRemoteConfigs
+                  $class: 'GitSCM',
+                  branches: scm.branches,
+                  doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
+                  //extensions: scm.extensions,
+                  userRemoteConfigs: scm.userRemoteConfigs
+                  extensions: [
+                    [$class: 'RelativeTargetDirectory', relativeTargetDir: $TARGET]
+                  ],
                 ])
                 params["build"].each {
                   sh it
