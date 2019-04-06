@@ -2,7 +2,13 @@ def call(Map params = [:]) {
   def defaults = [
     name: "asdf",
     install: ["echo installed"],
-    env: [:]
+    env: [:],
+    tests: [
+      [
+        name: "test1",
+        script: "echo hey",
+      ],
+    ],
   ]
 
   params = defaults << params
@@ -39,6 +45,17 @@ def call(Map params = [:]) {
                 echo "project name: ${params['name']}"
                 echo "image: $IMAGE/$TAG"
               """
+            }
+          }
+        }
+      }
+
+      stage("tests") {
+        params.tests.each {
+          steps {
+            script {
+              echo it.name
+              sh it
             }
           }
         }
