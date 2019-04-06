@@ -51,7 +51,7 @@ def call(Map params = [:]) {
       }
 
       stage("tests") {
-        params.tests.each {
+        params.tests.collect {
           steps {
             script {
               echo it.name
