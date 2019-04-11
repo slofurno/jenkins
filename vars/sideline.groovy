@@ -23,6 +23,15 @@ def call(Map params = [:]) {
   params = defaults << params
   def containers = defaultContainers[params["agent"]]
 
+  def testSteps = params.test.collect {
+    switch(it) {
+    case Map:
+      it
+    default:
+      [container: containers["build"], script: it]
+    }
+  }
+
   pipeline {
     agent { label containers["agent"] }
 
@@ -80,11 +89,11 @@ def call(Map params = [:]) {
 
       stage('test') {
         steps {
-          container(containers["build"]) {
-            script {
-              dir(path: PWD) {
-                params["test"].each {
-                  sh it
+          script {
+            for (int i = 0; i < testSteps.size(); i++) {
+              container(testSteps[i].container) {
+                dir(path: PWD) {
+                  sh testSteps[i].script
                 }
               }
             }
