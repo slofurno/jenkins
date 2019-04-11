@@ -26,9 +26,9 @@ def call(Map params = [:]) {
   def testSteps = params.test.collect {
     switch(it) {
     case Map:
-      it
+      return it
     default:
-      [container: containers["build"], script: it]
+      return [container: containers["build"], script: it]
     }
   }
 
