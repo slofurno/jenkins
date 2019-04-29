@@ -127,12 +127,16 @@ def call(Map params = [:]) {
             script {
               withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds']]) {
                 dir(path: PWD) {
-                  sh "cat deploy/qa/* | envsubst | kubectl apply -f -"
-                  sh "kubectl rollout status -f deploy/qa/deploy.yml"
+                  if (fileExists('deploy/qa/deploy.yml')) {
+                    sh "cat deploy/qa/* | envsubst | kubectl apply -f -"
+                    sh "kubectl rollout status -f deploy/qa/deploy.yml"
+                  }
 
-                  kubeEnvSetup("staging")
-                  sh "cat deploy/staging/* | envsubst | kubectl apply -f -"
-                  sh "kubectl rollout status -f deploy/staging/deploy.yml"
+                  if (fileExists('deploy/staging/deploy.yml')) {
+                    kubeEnvSetup("staging")
+                    sh "cat deploy/staging/* | envsubst | kubectl apply -f -"
+                    sh "kubectl rollout status -f deploy/staging/deploy.yml"
+                  }
                 }
               }
             }
@@ -147,9 +151,11 @@ def call(Map params = [:]) {
             script {
               withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds']]) {
                 dir(path: PWD) {
-                  kubeEnvSetup("production")
-                  sh "cat deploy/production/* | envsubst | kubectl apply -f -"
-                  sh "kubectl rollout status -f deploy/production/deploy.yml"
+                  if (fileExists('deploy/production/deploy.yml')) {
+                    kubeEnvSetup("production")
+                    sh "cat deploy/production/* | envsubst | kubectl apply -f -"
+                    sh "kubectl rollout status -f deploy/production/deploy.yml"
+                  }
                 }
               }
             }
