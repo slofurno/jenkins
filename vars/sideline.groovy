@@ -120,7 +120,7 @@ def call(Map params = [:]) {
         }
       }
 
-      stage('qa deploy') {
+      stage('staging/qa deploy') {
         when { branch "master" }
         steps {
           container('kubebuilder') {
@@ -129,6 +129,10 @@ def call(Map params = [:]) {
                 dir(path: PWD) {
                   sh "cat deploy/qa/* | envsubst | kubectl apply -f -"
                   sh "kubectl rollout status -f deploy/qa/deploy.yml"
+
+                  kubeEnvSetup("staging")
+                  sh "cat deploy/staging/* | envsubst | kubectl apply -f -"
+                  sh "kubectl rollout status -f deploy/staging/deploy.yml"
                 }
               }
             }
