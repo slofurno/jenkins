@@ -6,6 +6,7 @@ def call(Map params = [:]) {
     build: ["npm install"],
     install: [],
     test: [],
+    integration_test: [],
     env: [:]
   ]
 
@@ -13,10 +14,12 @@ def call(Map params = [:]) {
     "nodejs": [
       "agent": "sidecar-nodejs",
       "build": "nodejs",
+      "test": "python",
     ],
     "go": [
       "agent": "sidecar-go",
       "build": "go",
+      "test": "python",
     ]
   ]
 
@@ -29,6 +32,15 @@ def call(Map params = [:]) {
       return it
     default:
       return [container: containers["build"], script: it]
+    }
+  }
+
+  def integrationTestSteps = params.integration_test.collect {
+    switch(it) {
+    case Map:
+      return it
+    default:
+      return [container: containers["test"], script: it]
     }
   }
 
@@ -113,6 +125,38 @@ def call(Map params = [:]) {
                     docker build -t ${IMAGE}:${TAG} .
                     docker --config=/ push ${IMAGE}:${TAG}
                   """
+                }
+              }
+            }
+          }
+        }
+      }
+
+      stage('ci deploy') {
+        when { tag "v*" }
+        steps {
+          container('kubebuilder') {
+            script {
+              withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds']]) {
+                dir(path: PWD) {
+                  if (fileExists('deploy/ci/deploy.yml')) {
+                    sh "cat deploy/ci/* | envsubst | kubectl apply -f -"
+                    sh "kubectl rollout status -f deploy/ci/deploy.yml"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      stage('integration test') {
+        steps {
+          script {
+            for (int i = 0; i < integrationTestSteps.size(); i++) {
+              container(integrationTestSteps[i].container) {
+                dir(path: PWD) {
+                  sh integrationTestSteps[i].script
                 }
               }
             }
