@@ -1,12 +1,10 @@
 def call(Map params = [:]) {
   def defaults = [
-    name: "asdf",
     agent: "nodejs",
     image: "",
     build: ["npm install"],
     install: [],
     test: [],
-    integration_test: [],
     env: [:]
   ]
 
@@ -32,15 +30,6 @@ def call(Map params = [:]) {
       return it
     default:
       return [container: containers["build"], script: it]
-    }
-  }
-
-  def integrationTestSteps = params.integration_test.collect {
-    switch(it) {
-    case Map:
-      return it
-    default:
-      return [container: containers["test"], script: it]
     }
   }
 
@@ -75,7 +64,7 @@ def call(Map params = [:]) {
         }
       }
 
-      stage('build') {
+      stage('clone') {
         steps {
           container(containers["build"]) {
             script {
@@ -90,22 +79,19 @@ def call(Map params = [:]) {
                   extensions: (scm.extensions + reltarget),
                   userRemoteConfigs: scm.userRemoteConfigs,
                 ])
-                params["build"].each {
-                  sh it
-                }
               }
             }
           }
         }
       }
 
-      stage('test') {
+      stage('build') {
         steps {
-          script {
-            for (int i = 0; i < testSteps.size(); i++) {
-              container(testSteps[i].container) {
-                dir(path: PWD) {
-                  sh testSteps[i].script
+          container(containers["build"]) {
+            script {
+              dir(PWD) {
+                params["build"].each {
+                  sh it
                 }
               }
             }
@@ -150,13 +136,14 @@ def call(Map params = [:]) {
         }
       }
 
-      stage('integration test') {
+
+      stage('test') {
         steps {
           script {
-            for (int i = 0; i < integrationTestSteps.size(); i++) {
-              container(integrationTestSteps[i].container) {
+            for (int i = 0; i < testSteps.size(); i++) {
+              container(testSteps[i].container) {
                 dir(path: PWD) {
-                  sh integrationTestSteps[i].script
+                  sh testSteps[i].script
                 }
               }
             }
