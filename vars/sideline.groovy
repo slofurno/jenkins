@@ -150,6 +150,22 @@ def call(Map params = [:]) {
         }
       }
 
+      stage('ci cleanup') {
+        steps {
+          container('kubebuilder') {
+            script {
+              withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds']]) {
+                dir(path: PWD) {
+                  if (fileExists('deploy/ci/deploy.yml')) {
+                    sh "cat deploy/ci/* | envsubst | kubectl delete -f -"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
       stage('staging/qa deploy') {
         when { branch "master" }
         steps {
