@@ -34,7 +34,12 @@ def call(Map params = [:]) {
   }
 
   pipeline {
-    agent { label containers["agent"] }
+    agent {
+      docker {
+        image 'slofurno/ci'
+        label 'ci'
+      }
+    }
 
     environment {
       PWD = "${env.WORKSPACE}"
@@ -66,20 +71,18 @@ def call(Map params = [:]) {
 
       stage('clone') {
         steps {
-          container(containers["build"]) {
-            script {
-              dir(PWD) {
-                sh 'echo "pwd: $PWD"'
+          script {
+            dir(PWD) {
+              sh 'echo "pwd: $PWD"'
 
-                def reltarget = [ [$class: 'RelativeTargetDirectory', relativeTargetDir: ""] ]
-                checkout([
-                  $class: 'GitSCM',
-                  branches: scm.branches,
-                  doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
-                  extensions: (scm.extensions + reltarget),
-                  userRemoteConfigs: scm.userRemoteConfigs,
-                ])
-              }
+              def reltarget = [ [$class: 'RelativeTargetDirectory', relativeTargetDir: ""] ]
+              checkout([
+                $class: 'GitSCM',
+                branches: scm.branches,
+                doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
+                extensions: (scm.extensions + reltarget),
+                userRemoteConfigs: scm.userRemoteConfigs,
+              ])
             }
           }
         }
@@ -87,12 +90,10 @@ def call(Map params = [:]) {
 
       stage('build') {
         steps {
-          container(containers["build"]) {
-            script {
-              dir(PWD) {
-                params["build"].each {
-                  sh it
-                }
+          script {
+            dir(PWD) {
+              params["build"].each {
+                sh it
               }
             }
           }
@@ -101,17 +102,15 @@ def call(Map params = [:]) {
 
       stage('build image') {
         steps {
-          container('kubebuilder') {
-            script {
-              withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds']]) {
-                dir(path: PWD) {
-                  sh """
-                    \$(aws ecr get-login --no-include-email --registry-id=142221083342 | sed -e 's|docker|docker --config=/|')
+          script {
+            withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds']]) {
+              dir(path: PWD) {
+                sh """
+                  \$(aws ecr get-login --no-include-email --registry-id=142221083342 | sed -e 's|docker|docker --config=/|')
 
-                    docker build -t ${IMAGE}:${TAG} .
-                    docker --config=/ push ${IMAGE}:${TAG}
-                  """
-                }
+                  docker build -t ${IMAGE}:${TAG} .
+                  docker --config=/ push ${IMAGE}:${TAG}
+                """
               }
             }
           }
@@ -120,14 +119,12 @@ def call(Map params = [:]) {
 
       stage('ci deploy') {
         steps {
-          container('kubebuilder') {
-            script {
-              withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds']]) {
-                dir(path: PWD) {
-                  if (fileExists('deploy/ci/deploy.yml')) {
-                    sh "cat deploy/ci/* | envsubst | kubectl -v=4 apply -f -"
-                    sh 'for f in `ls deploy/ci/*deploy.yml`; do envsubst < $f | kubectl rollout status -f - ; done'
-                  }
+          script {
+            withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds']]) {
+              dir(path: PWD) {
+                if (fileExists('deploy/ci/deploy.yml')) {
+                  sh "cat deploy/ci/* | envsubst | kubectl -v=4 apply -f -"
+                  sh 'for f in `ls deploy/ci/*deploy.yml`; do envsubst < $f | kubectl rollout status -f - ; done'
                 }
               }
             }
