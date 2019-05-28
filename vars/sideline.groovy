@@ -1,6 +1,5 @@
 def call(Map params = [:]) {
   def defaults = [
-    name: "asdf",
     agent: "nodejs",
     image: "",
     build: ["npm install"],
@@ -13,10 +12,12 @@ def call(Map params = [:]) {
     "nodejs": [
       "agent": "sidecar-nodejs",
       "build": "nodejs",
+      "test": "python",
     ],
     "go": [
       "agent": "sidecar-go",
       "build": "go",
+      "test": "python",
     ]
   ]
 
@@ -63,7 +64,7 @@ def call(Map params = [:]) {
         }
       }
 
-      stage('build') {
+      stage('clone') {
         steps {
           container(containers["build"]) {
             script {
@@ -78,22 +79,19 @@ def call(Map params = [:]) {
                   extensions: (scm.extensions + reltarget),
                   userRemoteConfigs: scm.userRemoteConfigs,
                 ])
-                params["build"].each {
-                  sh it
-                }
               }
             }
           }
         }
       }
 
-      stage('test') {
+      stage('build') {
         steps {
-          script {
-            for (int i = 0; i < testSteps.size(); i++) {
-              container(testSteps[i].container) {
-                dir(path: PWD) {
-                  sh testSteps[i].script
+          container(containers["build"]) {
+            script {
+              dir(PWD) {
+                params["build"].each {
+                  sh it
                 }
               }
             }
@@ -113,6 +111,38 @@ def call(Map params = [:]) {
                     docker build -t ${IMAGE}:${TAG} .
                     docker --config=/ push ${IMAGE}:${TAG}
                   """
+                }
+              }
+            }
+          }
+        }
+      }
+
+      stage('ci deploy') {
+        steps {
+          container('kubebuilder') {
+            script {
+              withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds']]) {
+                dir(path: PWD) {
+                  if (fileExists('deploy/ci/deploy.yml')) {
+                    sh "cat deploy/ci/* | envsubst | kubectl apply -f -"
+                    sh "kubectl rollout status -f deploy/ci/deploy.yml"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+
+      stage('test') {
+        steps {
+          script {
+            for (int i = 0; i < testSteps.size(); i++) {
+              container(testSteps[i].container) {
+                dir(path: PWD) {
+                  sh testSteps[i].script
                 }
               }
             }
