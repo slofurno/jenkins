@@ -125,8 +125,8 @@ def call(Map params = [:]) {
               withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds']]) {
                 dir(path: PWD) {
                   if (fileExists('deploy/ci/deploy.yml')) {
-                    sh "cat deploy/ci/* | envsubst | kubectl apply -f -"
-                    sh "kubectl rollout status -f deploy/ci/deploy.yml"
+                    sh "cat deploy/ci/* | envsubst | kubectl -v=4 apply -f -"
+                    sh "kubectl rollout -v=4 status -f deploy/ci/deploy.yml"
                   }
                 }
               }
